@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  log-monitor:
+    build: .
+    container_name: log-monitor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  
+    environment:
+      - TOKEN=ваш_телеграм_бот_токен
+      - CONTAINER_NAME=executor-release-executor-1
+    restart: unless-stopped
