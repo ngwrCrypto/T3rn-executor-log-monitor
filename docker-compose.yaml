@@ -7,6 +7,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  
     environment:
-      - TOKEN=ваш_телеграм_бот_токен
+      - TOKEN=your_bot_token
       - CONTAINER_NAME=executor-release-executor-1
     restart: unless-stopped
