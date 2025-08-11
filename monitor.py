@@ -1,27 +1,24 @@
-import os
 import asyncio
 import docker
 import aiohttp
+import os
+import json
+from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-# ===== Configuration from ENV =====
+# ===== Config from env =====
 TOKEN: str = os.getenv("TOKEN", "")
 CONTAINER_NAME: str = os.getenv("CONTAINER_NAME", "")
-KEYWORDS: List[str] = os.getenv("KEYWORDS", "ERROR,WARNING").split(",")
+KEYWORDS: List[str] = [k.strip() for k in os.getenv("KEYWORDS", "").split(",") if k.strip()]
+SUCCESS_PATTERNS: List[str] = [p.strip() for p in os.getenv("SUCCESS_PATTERNS", "").split(",") if p.strip()]
 
 user_chat_id: Optional[int] = None
 last_update_id: int = 0
 
-if not TOKEN:
-    raise ValueError("[ERROR] TOKEN is not set in environment variables!")
-if not CONTAINER_NAME:
-    raise ValueError("[ERROR] CONTAINER_NAME is not set in environment variables!")
-
-# Get the chat_id on startup by listening for the /start command
+# === Get chat_id ===
 async def get_chat_id() -> None:
     global user_chat_id, last_update_id
     async with aiohttp.ClientSession() as session:
-        print(f"[INFO] Waiting for /start in Telegram chat...")
         while user_chat_id is None:
             url = f"https://api.telegram.org/bot{TOKEN}/getUpdates"
             if last_update_id:
@@ -41,7 +38,7 @@ async def get_chat_id() -> None:
                 print(f"[ERROR] get_chat_id: {e}")
             await asyncio.sleep(2)
 
-# Send message to Telegram
+# === Send to Telegram ===
 async def send_to_telegram(session: aiohttp.ClientSession, message: str) -> None:
     if user_chat_id is None:
         return
@@ -51,19 +48,39 @@ async def send_to_telegram(session: aiohttp.ClientSession, message: str) -> None
     except Exception as e:
         print(f"[ERROR] send_to_telegram: {e}")
 
-# Monitor the container logs
+# === Monitor container logs ===
 async def monitor_container(container: docker.models.containers.Container, session: aiohttp.ClientSession) -> None:
     print(f"[INFO] Monitoring container: {container.name}")
     try:
-        for line in container.logs(stream=True, follow=True):
+        for line in container.logs(stream=True, follow=True, since=int(datetime.now().timestamp())):
             log_line: str = line.decode("utf-8", errors="ignore").strip()
-            if any(keyword in log_line for keyword in KEYWORDS):
-                print(f"[MATCH] {container.name}: {log_line}")
-                await send_to_telegram(session, f"[{container.name}] {log_line}")
+            if should_notify(log_line):
+                formatted_message = format_log_message(log_line, container.name)
+                print(f"[MATCH] {container.name}: {formatted_message}")
+                await send_to_telegram(session, formatted_message)
     except Exception as e:
         print(f"[ERROR] monitor_container: {e}")
 
-# Main
+# === Filtering logic ===
+def should_notify(log_line: str) -> bool:
+    return (
+        any(k.lower() in log_line.lower() for k in KEYWORDS) or
+        any(p in log_line for p in SUCCESS_PATTERNS)
+    )
+
+# === Format log for Telegram ===
+def format_log_message(raw_log: str, container_name: str) -> str:
+    try:
+        log_data = json.loads(raw_log)
+        timestamp = datetime.fromtimestamp(log_data.get("time", datetime.now().timestamp()) / 1000)
+        level = log_data.get("level", "info").upper()
+        msg = log_data.get("msg", raw_log)
+        return f"📅 {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n📌 Level: {level}\n📦 {container_name}\n\n{msg}"
+    except Exception:
+        # Fallback if log is not JSON
+        return f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n📦 {container_name}\n\n{raw_log}"
+
+# === Main ===
 async def main() -> None:
     client: docker.DockerClient = docker.from_env()
     containers = [c for c in client.containers.list() if c.name == CONTAINER_NAME]

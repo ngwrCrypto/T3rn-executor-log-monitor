@@ -7,7 +7,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  
     environment:
-      - TOKEN=123456789:ABCDEF....  
-      - CONTAINER_NAME=executor-release-executor-1
-      - KEYWORDS=ERROR,WARNING
+      TOKEN: "123456789:ABCDEF...."
+      CONTAINER_NAME: "executor-release-executor-1"
+      KEYWORDS: "ERROR,WARNING,warn"
+      SUCCESS_PATTERNS: >
+        {"msg":"✅ Bid successful","msg":"📦️ ✅ Tx batch item successful.","msg":"📝🍋 Rejection reason: Potential profit is negative",
+        "msg":"🔃🏆 No pending orders to Bid","msg":"👩‍⚖️🦑 Pending orders rejected","msg":"📝🥔 Potential profit is negative. Skip order",
+        "msg":"🍊🧩 Transmitter estimate failed due to BD#10"}
     restart: unless-stopped
