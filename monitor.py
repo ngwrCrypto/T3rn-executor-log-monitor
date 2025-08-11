@@ -1,23 +1,27 @@
+import os
 import asyncio
 import docker
 import aiohttp
 from typing import Optional, List, Dict, Any
 
-# ===== Configuration =====
-TOKEN: str = "ВАШ_BOT_TOKEN"  # Insert your Telegram bot token here
-CONTAINER_NAME: str = "executor-release-executor-1"  # Name of the container to monitor
-KEYWORDS: List[str] = ["ERROR", "WARNING"]  # Keywords for log filtering
+# ===== Configuration from ENV =====
+TOKEN: str = os.getenv("TOKEN", "")
+CONTAINER_NAME: str = os.getenv("CONTAINER_NAME", "")
+KEYWORDS: List[str] = os.getenv("KEYWORDS", "ERROR,WARNING").split(",")
 
 user_chat_id: Optional[int] = None
 last_update_id: int = 0
 
+if not TOKEN:
+    raise ValueError("[ERROR] TOKEN is not set in environment variables!")
+if not CONTAINER_NAME:
+    raise ValueError("[ERROR] CONTAINER_NAME is not set in environment variables!")
+
 # Get the chat_id on startup by listening for the /start command
 async def get_chat_id() -> None:
-    """
-    Polls the Telegram API to find the user's chat_id by listening for the /start command.
-    """
     global user_chat_id, last_update_id
     async with aiohttp.ClientSession() as session:
+        print(f"[INFO] Waiting for /start in Telegram chat...")
         while user_chat_id is None:
             url = f"https://api.telegram.org/bot{TOKEN}/getUpdates"
             if last_update_id:
@@ -37,15 +41,8 @@ async def get_chat_id() -> None:
                 print(f"[ERROR] get_chat_id: {e}")
             await asyncio.sleep(2)
 
-# Send a message to Telegram
+# Send message to Telegram
 async def send_to_telegram(session: aiohttp.ClientSession, message: str) -> None:
-    """
-    Sends a message to the user's chat_id in Telegram.
-    
-    Args:
-        session: An aiohttp.ClientSession object.
-        message: The message string to be sent.
-    """
     if user_chat_id is None:
         return
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
@@ -56,14 +53,6 @@ async def send_to_telegram(session: aiohttp.ClientSession, message: str) -> None
 
 # Monitor the container logs
 async def monitor_container(container: docker.models.containers.Container, session: aiohttp.ClientSession) -> None:
-    """
-    Monitors the logs of a given Docker container, filters for keywords,
-    and sends matching log lines to Telegram.
-
-    Args:
-        container: A docker.models.containers.Container object.
-        session: An aiohttp.ClientSession object.
-    """
     print(f"[INFO] Monitoring container: {container.name}")
     try:
         for line in container.logs(stream=True, follow=True):
@@ -74,16 +63,10 @@ async def monitor_container(container: docker.models.containers.Container, sessi
     except Exception as e:
         print(f"[ERROR] monitor_container: {e}")
 
-# Main execution loop
+# Main
 async def main() -> None:
-    """
-    The main coroutine that sets up the Docker client, finds the container,
-    and starts the monitoring process.
-    """
     client: docker.DockerClient = docker.from_env()
-    containers: List[docker.models.containers.Container] = [
-        c for c in client.containers.list() if c.name == CONTAINER_NAME
-    ]
+    containers = [c for c in client.containers.list() if c.name == CONTAINER_NAME]
     if not containers:
         print(f"[ERROR] No container found with name '{CONTAINER_NAME}'")
         return
@@ -91,7 +74,7 @@ async def main() -> None:
     await get_chat_id()
 
     async with aiohttp.ClientSession() as session:
-        tasks: List[asyncio.Task] = [monitor_container(c, session) for c in containers]
+        tasks = [monitor_container(c, session) for c in containers]
         await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
