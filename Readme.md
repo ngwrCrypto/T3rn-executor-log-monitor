@@ -112,7 +112,7 @@ services:
 ![Telegram Alerts](https://imgur.com/mnkoQXW.png)
 
 **Live Log Monitoring**  
-![Logs in Action](https://imgur.com/a/G2Dp8Vj.png)
+![Logs in Action](https://imgur.com/G2Dp8Vj.png)
 
 ---
 
