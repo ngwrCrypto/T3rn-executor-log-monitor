@@ -1,9 +1,22 @@
 # **T3rn-Executor-Log-Monitor** 🛡️📜
 
+
+*Transform Logs Into Instant Action and Alerts*
+
+![last commit](https://img.shields.io/badge/last%20commit-today-blue)
+![python](https://img.shields.io/badge/python-100.0%25-blue)
+![languages](https://img.shields.io/badge/languages-1-blue)
+
+*Built with the tools and technologies:*
+
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![YAML](https://img.shields.io/badge/YAML-cb171e?logo=yaml&logoColor=white)
+
 > 🚀 Welcome to the world of log monitoring!  
 > With this tool, you'll keep a watchful eye on your T3rn Executor logs and get instant Telegram alerts for important events.  
 
-![Log Monitoring](https://i.imgur.com/6v3m6wP.png)
+![Log Monitoring](https://imgur.com/zAwzJfS.png)
 
 ---
 
@@ -62,7 +75,7 @@ cd T3rn-Executor-Log-Monitor
 ```bash
 
 docker-compose up -d
- or 
+or 
  tmux new -s t3rn-monitor
  docker-compose up -d
 ```
@@ -96,10 +109,10 @@ services:
 ## **🖼️ Screenshots**
 
 **Telegram Alerts Example**  
-![Telegram Alerts](https://i.imgur.com/Bl3YgRa.png)
+![Telegram Alerts](https://imgur.com/mnkoQXW.png)
 
 **Live Log Monitoring**  
-![Logs in Action](https://i.imgur.com/xqf9qNm.png)
+![Logs in Action](https://imgur.com/a/G2Dp8Vj.png)
 
 ---
 
