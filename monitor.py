@@ -74,11 +74,22 @@ def format_log_message(raw_log: str, container_name: str) -> str:
         log_data = json.loads(raw_log)
         timestamp = datetime.fromtimestamp(log_data.get("time", datetime.now().timestamp()) / 1000)
         level = log_data.get("level", "info").upper()
-        msg = log_data.get("msg", raw_log)
-        return f"📅 {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n📌 Level: {level}\n📦 {container_name}\n\n{msg}"
+
+        pretty_json = json.dumps(log_data, indent=2, ensure_ascii=False)
+
+        return (
+            f"📅 {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"📌 Level: {level}\n"
+            f"📦 {container_name}\n\n"
+            f"{pretty_json}"
+        )
     except Exception:
-        # Fallback if log is not JSON
-        return f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n📦 {container_name}\n\n{raw_log}"
+
+        return (
+            f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"📦 {container_name}\n\n"
+            f"{raw_log}"
+        )
 
 # === Main ===
 async def main() -> None:
