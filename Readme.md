@@ -80,7 +80,7 @@ or
  docker-compose up -d
 ```
 ⚠️ Important:
-To ensure that all raw logs are printed without truncation or pretty formatting, set the following in your **ghcr.io/t3rn/executor:latest **   container in the     **docker-compose.mainnet.native.yml**   file::
+To ensure that all raw logs are printed without truncation or pretty formatting, set the following in your **ghcr.io/t3rn/executor:latest**   container in the     **docker-compose.mainnet.native.yml**   file::
 
 ```LOG_PRETTY: "false"```
 This will output the complete unformatted logs so that the log-monitor can process them correctly.
