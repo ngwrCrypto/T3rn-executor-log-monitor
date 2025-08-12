@@ -76,8 +76,8 @@ cd T3rn-Executor-Log-Monitor
 
 docker-compose up -d
 or 
- tmux new -s t3rn-monitor
- docker-compose up -d
+tmux new -s t3rn-monitor
+docker-compose up -d
 ```
 ⚠️ Important:
 To ensure that all raw logs are printed without truncation or pretty formatting, set the following in your **ghcr.io/t3rn/executor:latest**   container in the     **docker-compose.mainnet.native.yml**   file::
