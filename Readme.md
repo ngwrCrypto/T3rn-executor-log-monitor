@@ -57,7 +57,7 @@ All settings are in **`docker-compose.yaml`**.
 
 1. **Clone the repository**  
 ```bash
-git clone https://github.com/yourusername/T3rn-Executor-Log-Monitor.git
+git clone git@github.com:ngwrCrypto/T3rn-executor-log-monitor.git
 cd T3rn-Executor-Log-Monitor
 ```
 
